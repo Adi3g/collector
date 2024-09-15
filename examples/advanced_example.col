@@ -1,0 +1,47 @@
+# advanced_example.col
+
+VERSION 1.0
+
+# SQL Data Source
+SOURCE sales_db TYPE sql {
+    HOST "localhost"
+    PORT 5432
+    USERNAME "user"
+    PASSWORD "pass"
+    DATABASE "sales"
+    QUERY "SELECT id, sale_date, amount FROM sales_data"
+}
+
+# API Data Source
+SOURCE weather_api TYPE api {
+    ENDPOINT "https://api.openweathermap.org/data/2.5/weather"
+    METHOD "GET"
+    HEADERS {
+        "Content-Type": "application/json"
+        "Authorization": "Bearer your_api_key"
+    }
+    QUERY_PARAMS {
+        "q": "London"
+        "units": "metric"
+    }
+}
+
+# Transformations
+TRANSFORM unified_sales FROM sales_db {
+    FIELD sale_date TYPE date FORMAT "%Y-%m-%d"
+    FIELD amount TYPE float DEFAULT 0.0
+}
+
+TRANSFORM unified_weather FROM weather_api {
+    FIELD city TYPE string EXTRACT "name"
+    FIELD temperature TYPE float EXTRACT "main.temp"
+    FIELD humidity TYPE int EXTRACT "main.humidity"
+}
+
+# Output Configuration
+OUTPUT combined_data TYPE parquet {
+    PATH "/output/combined_data.parquet"
+    OPTIONS {
+        COMPRESSION "gzip"
+    }
+}

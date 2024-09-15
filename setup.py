@@ -12,7 +12,7 @@ setup(
     description="A flexible Python library for collecting, transforming, and unifying data from diverse sources into a standardized format using customizable configurations.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/collector", 
+    url="https://github.com/Adi3g/collector", 
     packages=find_packages(include=["collector", "collector.*"]),
     classifiers=[
         "Programming Language :: Python :: 3",

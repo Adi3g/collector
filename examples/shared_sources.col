@@ -1,0 +1,17 @@
+# shared_sources.col
+
+# Common SQL Data Source
+SOURCE common_sql TYPE sql {
+    HOST "localhost"
+    PORT 3306
+    USERNAME "common_user"
+    PASSWORD "common_pass"
+    DATABASE "common_db"
+    QUERY "SELECT * FROM common_table"
+}
+
+# Common Transformations
+TRANSFORM common_transform FROM common_sql {
+    FIELD common_id TYPE string
+    FIELD common_value TYPE int DEFAULT 0
+}
