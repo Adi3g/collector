@@ -1,0 +1,27 @@
+# basic_example.col
+
+VERSION 1.0
+
+# Define Data Source
+SOURCE sales_db TYPE sql {
+    HOST "localhost"
+    PORT 5432
+    USERNAME "user"
+    PASSWORD "pass"
+    DATABASE "sales"
+    QUERY "SELECT * FROM sales_data"
+}
+
+# Define Transformations
+TRANSFORM unified_sales FROM sales_db {
+    FIELD sale_date TYPE date FORMAT "%Y-%m-%d"
+    FIELD amount TYPE float DEFAULT 0.0
+}
+
+# Define Output
+OUTPUT unified_data TYPE parquet {
+    PATH "/output/unified_sales.parquet"
+    OPTIONS {
+        COMPRESSION "gzip"
+    }
+}
