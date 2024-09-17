@@ -1,5 +1,3 @@
-# collector/core/collector.py
-
 from collector.core.config_parser import CollectorConfigParser
 from collector.connectors.sql_connector import SQLConnector
 
