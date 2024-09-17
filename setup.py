@@ -1,6 +1,5 @@
 from setuptools import setup, find_packages
 
-# Read the contents of the README file
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
@@ -36,7 +35,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "collector=collector.scripts.run_collector:main"
+            "collector=collector.scripts.run_collector:main",
         ],
     },
     include_package_data=True,
