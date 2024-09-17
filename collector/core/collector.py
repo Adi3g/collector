@@ -1,6 +1,7 @@
 from collector.core.config_parser import CollectorConfigParser
 from collector.connectors.sql_connector import SQLConnector
 from collector.core.transformer import DataTransformer
+from collector.output.output_handler import OutputHandler
 
 
 class Collector:
@@ -110,10 +111,29 @@ class Collector:
         """
         return self.transformer.transform(data)
 
+
+    def initialize_output_handler(self):
+        """
+        Initializes the output handler with the output settings from the configuration.
+        """
+        self.output = OutputHandler(self.config['output'])
+        print("Output handler initialized")
+
+    def output_data(self, transformed_data):
+        """
+        Outputs the transformed data using the initialized output handler.
+
+        :param transformed_data: The data after applying transformations.
+        :type transformed_data: list
+        """
+        self.output.save(transformed_data)
+
     def run(self):
         self.load_config()
         self.initialize_connectors()
         self.initialize_transformer()
+        self.initialize_output_handler()
         raw_data = self.collect_data()
         transformed_data = self.transform_data(raw_data)
         self.output_data(transformed_data)
+
