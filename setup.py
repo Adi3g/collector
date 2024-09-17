@@ -32,6 +32,7 @@ setup(
             "pytest>=6.0",
             "flake8>=3.8",
             "black>=21.0",
+            "sqlalchemy>=2.0.35",
         ],
     },
     entry_points={
