@@ -1,5 +1,7 @@
 from collector.core.config_parser import CollectorConfigParser
 from collector.connectors.sql_connector import SQLConnector
+from collector.core.transformer import DataTransformer
+
 
 class Collector:
     """
@@ -86,6 +88,32 @@ class Collector:
         """
         self.load_config()
         self.initialize_connectors()
+        raw_data = self.collect_data()
+        transformed_data = self.transform_data(raw_data)
+        self.output_data(transformed_data)
+
+    def initialize_transformer(self):
+        """
+        Initializes the data transformer with transformation rules from the configuration.
+        """
+        self.transformer = DataTransformer(self.config['transformations'])
+        print("Data transformer initialized")
+
+    def transform_data(self, data):
+        """
+        Transforms the collected data using the initialized data transformer.
+
+        :param data: The raw data collected from sources.
+        :type data: list
+        :return: Transformed data.
+        :rtype: list
+        """
+        return self.transformer.transform(data)
+
+    def run(self):
+        self.load_config()
+        self.initialize_connectors()
+        self.initialize_transformer()
         raw_data = self.collect_data()
         transformed_data = self.transform_data(raw_data)
         self.output_data(transformed_data)

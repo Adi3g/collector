@@ -1,5 +1,3 @@
-# collector/core/transformer.py
-
 class DataTransformer:
     """
     DataTransformer applies transformations to collected data according to rules defined in the configuration.
