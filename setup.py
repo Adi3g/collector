@@ -33,6 +33,7 @@ setup(
             "flake8>=3.8",
             "black>=21.0",
             "sqlalchemy>=2.0.35",
+            "pandas>=2..0.0"
         ],
     },
     entry_points={
