@@ -2,7 +2,7 @@
 from collector.core.collector import Collector
 
 def main():
-    config_path = 'path/to/config.col'  # Update with an actual path to your .col file
+    config_path = './examples/basic_example.col'  # Update with an actual path to your .col file
     collector = Collector(config_path)
     collector.run()
 
