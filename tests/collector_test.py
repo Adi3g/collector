@@ -1,6 +1,3 @@
-# tests/test_collector.py
-
-
 from collector.core.collector import Collector
 
 

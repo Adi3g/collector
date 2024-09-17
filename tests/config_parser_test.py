@@ -1,5 +1,3 @@
-# tests/test_config_parser.py
-
 from collector.core.config_parser import CollectorConfigParser
 
 def test_config_parser():
