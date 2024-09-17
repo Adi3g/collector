@@ -1,5 +1,3 @@
-# collector/output/output_handler.py
-
 import pandas as pd
 
 class OutputHandler:
