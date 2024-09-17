@@ -1,6 +1,5 @@
 from setuptools import setup, find_packages
 
-# Read the contents of the README file
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
@@ -32,13 +31,11 @@ setup(
             "pytest>=6.0",
             "flake8>=3.8",
             "black>=21.0",
-            "sqlalchemy>=2.0.35",
-            "pandas>=2..0.0"
         ],
     },
     entry_points={
         "console_scripts": [
-            "collector=collector.scripts.run_collector:main"
+            "collector=collector.scripts.run_collector:main",
         ],
     },
     include_package_data=True,
