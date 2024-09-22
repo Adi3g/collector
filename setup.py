@@ -25,6 +25,7 @@ setup(
         "pyyaml>=5.4",
         "pyarrow>=4.0.0",
         "sqlalchemy>=1.4.0",
+        "colorlog>=5.0.0",
     ],
     extras_require={
         "dev": [
