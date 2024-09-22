@@ -1,69 +1,84 @@
+from decimal import Decimal
 import pandas as pd
+import json
+from datetime import date
 
 class OutputHandler:
     """
-    OutputHandler manages the output of transformed data into specified formats.
-
-    :param output_config: Configuration details for output, including type and options.
-    :type output_config: dict
+    Handles outputting the transformed data to different formats (CSV, JSON, Parquet).
     """
 
     def __init__(self, output_config):
         """
-        Initializes the OutputHandler with output configuration.
+        Initializes the OutputHandler with the output configuration.
 
-        :param output_config: Output settings from the configuration file.
+        :param output_config: The configuration specifying output format and path.
         :type output_config: dict
         """
-        self.output_config = output_config
+        self.output_type = output_config['type']
+        details = output_config.get('details', {})
+        self.output_path = details.get('path', None)
+        self.options = details.get('options', {})
 
-    def save(self, data):
+    def write_output(self, data):
         """
-        Saves the transformed data to the specified format and path.
-
-        :param data: The transformed data to be outputted.
+        Writes the data to the specified format (CSV, JSON, Parquet).
+        
+        :param data: The data to be written.
         :type data: list of dict
-        :raises ValueError: If an unsupported output type is specified.
         """
-        output_type = self.output_config['type']
-        if output_type == 'csv':
-            self._save_csv(data)
-        elif output_type == 'json':
-            self._save_json(data)
-        elif output_type == 'parquet':
-            self._save_parquet(data)
+        if self.output_type == 'csv':
+            self._write_csv(data)
+        elif self.output_type == 'json':
+            self._write_json(data)
+        elif self.output_type == 'parquet':
+            self._write_parquet(data)
         else:
-            raise ValueError(f"Unsupported output type: {output_type}")
+            raise ValueError(f"Unsupported output type: {self.output_type}")
 
-    def _save_csv(self, data):
+    def _write_csv(self, data):
         """
-        Saves the data as a CSV file.
+        Outputs data to a CSV file.
 
-        :param data: The data to save as CSV.
+        :param data: The data to output.
         :type data: list of dict
         """
-        df = pd.DataFrame(data)
-        df.to_csv(self.output_config['details']['path'], index=False)
-        print(f"Data saved as CSV at {self.output_config['details']['path']}")
+        df = pd.DataFrame(data)  # Convert data to DataFrame
+        df.to_csv(self.output_path, index=False)
 
-    def _save_json(self, data):
+    @staticmethod
+    def _json_serial(obj):
         """
-        Saves the data as a JSON file.
+        Custom serializer for objects not serializable by default.
+        
+        :param obj: The object to serialize.
+        :return: A serializable format (e.g., string) of the object.
+        :raises TypeError: If the object is not serializable.
+        """
+        if isinstance(obj, Decimal):
+            return float(obj)  # Convert Decimal objects to float
+        if isinstance(obj, date):
+            return obj.isoformat()  # Convert date objects to ISO format (YYYY-MM-DD)
+        raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
 
-        :param data: The data to save as JSON.
+
+    def _write_json(self, data):
+        """
+        Outputs data to a JSON file.
+
+        :param data: The data to output.
         :type data: list of dict
         """
-        df = pd.DataFrame(data)
-        df.to_json(self.output_config['details']['path'], orient='records', indent=2)
-        print(f"Data saved as JSON at {self.output_config['details']['path']}")
+        with open(self.output_path, 'w') as json_file:
+            json.dump(data, json_file, indent=4, default=self._json_serial)  # Use custom serialization method
 
-    def _save_parquet(self, data):
+    def _write_parquet(self, data):
         """
-        Saves the data as a Parquet file.
+        Outputs data to a Parquet file with optional compression.
 
-        :param data: The data to save as Parquet.
+        :param data: The data to output.
         :type data: list of dict
         """
-        df = pd.DataFrame(data)
-        df.to_parquet(self.output_config['details']['path'], compression=self.output_config['details'].get('compression', 'snappy'))
-        print(f"Data saved as Parquet at {self.output_config['details']['path']}")
+        df = pd.DataFrame(data)  # Convert data to DataFrame
+        compression = self.options.get('compression', None)  # Get compression option, if specified
+        df.to_parquet(self.output_path, compression=compression)

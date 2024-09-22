@@ -19,9 +19,6 @@ TRANSFORM unified_sales FROM sales_db {
 }
 
 # Define Output
-OUTPUT unified_data TYPE parquet {
-    PATH "./outputs/unified_sales.parquet"
-    OPTIONS {
-        COMPRESSION "gzip"
-    }
+OUTPUT unified_data TYPE csv {
+    PATH "./outputs/unified_sales.csv"
 }

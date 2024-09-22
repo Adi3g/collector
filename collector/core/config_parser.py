@@ -46,10 +46,12 @@ class CollectorConfigParser:
         """
         current_section = None
         current_data = None
+        current_line_idx = 0
         
-        for line in lines:
-            line = line.strip()
+        while current_line_idx < len(lines):
+            line = lines[current_line_idx].strip()
             if not line or line.startswith('#'):
+                current_line_idx += 1
                 continue  # Skip empty lines and comments
 
             if line.startswith('VERSION'):
@@ -65,9 +67,12 @@ class CollectorConfigParser:
             elif line.startswith('OUTPUT'):
                 current_section = 'output'
                 current_data = self._parse_output(line)
+                current_data['section'] = 'output'
                 self.config['output'] = current_data
             elif current_section and current_data:
-                self._parse_nested(line, current_data)
+                current_line_idx = self._parse_nested(line, current_data, lines, current_line_idx)
+
+            current_line_idx += 1
 
     def _parse_source(self, line):
         """
@@ -112,11 +117,50 @@ class CollectorConfigParser:
         """
         parts = re.split(r'\s+', line)
         return {
-            'type': parts[1],
+            'name': parts[1],
+            'type': parts[3],
             'details': {}
         }
 
-    def _parse_nested(self, line, current_data):
+    def _parse_output_details(self, output, line, lines, current_line_idx):
+        """
+        Parses the details inside an OUTPUT block and stores them inside the 'details' key.
+
+        :param output: The current output dictionary being processed.
+        :type output: dict
+        :param line: The line from the configuration file to parse.
+        :type line: str
+        :param lines: All lines of the configuration file.
+        :type lines: list of str
+        :param current_line_idx: Current index in the lines to track the nested block.
+        :type current_line_idx: int
+        :return: Updated line index after processing.
+        :rtype: int
+        """
+        # Ensure 'details' is initialized
+        if 'details' not in output:
+            output['details'] = {}
+
+        if line.startswith('PATH'):
+            key, value = line.split(" ", 1)
+            output['details']['path'] = value.strip('"')  # Store in 'details'
+        elif line.startswith('OPTIONS'):
+            output['details']['options'] = {}  # Initialize the options dict inside 'details'
+            current_line_idx += 1
+
+            # Continue parsing nested fields inside the OPTIONS block
+            while not lines[current_line_idx].strip().startswith('}'):
+                option_line = lines[current_line_idx].strip()
+                if option_line:
+                    key, value = option_line.split(" ", 1)
+                    output['details']['options'][key.lower()] = value.strip('"')
+                current_line_idx += 1
+
+        return current_line_idx
+
+
+
+    def _parse_nested(self, line, current_data, lines, current_line_idx):
         """
         Parses nested configuration details within a section.
 
@@ -124,8 +168,25 @@ class CollectorConfigParser:
         :type line: str
         :param current_data: The current section data being processed.
         :type current_data: dict
+        :param lines: All lines of the configuration file.
+        :type lines: list of str
+        :param current_line_idx: Current index in the lines to track the nested block.
+        :type current_line_idx: int
+        :return: Updated line index after processing.
+        :rtype: int
         """
-        match = re.match(r'(\w+)\s+"([^"]+)"', line)
-        if match:
-            key, value = match.groups()
-            current_data['details'][key.lower()] = value
+        if 'section' in current_data and current_data['section'] == 'output':
+            # Delegate to the output-specific handler
+            return self._parse_output_details(current_data, line, lines, current_line_idx)
+        else:
+            # General handling for nested lines in other sections
+            match = re.match(r'(\w+)\s+("[^"]+"|\S+)', line)
+            if match:
+                key, value = match.groups()
+                value = value.strip('"')
+                if value.isdigit():
+                    value = int(value)
+                if 'details' not in current_data:
+                    current_data['details'] = {}
+                current_data['details'][key.lower()] = value
+        return current_line_idx
