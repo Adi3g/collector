@@ -1,0 +1,46 @@
+VERSION 1.0
+
+# SQL Data Source (e.g., orders)
+SOURCE orders_db TYPE sql {
+    HOST "localhost"
+    PORT 5432
+    USERNAME "user"
+    PASSWORD "pass"
+    DATABASE "order_db"
+    QUERY "SELECT order_id, customer_id, order_date FROM orders"
+}
+
+# API Data Source (e.g., order items)
+SOURCE order_items_api TYPE api {
+    ENDPOINT "https://api.example.com/order-items"
+    METHOD "GET"
+    HEADERS {
+        Authorization "Bearer YOUR_TOKEN"
+    }
+}
+
+# Transformation Rules for Orders
+TRANSFORM orders_data FROM orders_db {
+    FIELD order_id TYPE int
+    FIELD customer_id TYPE int
+    FIELD order_date TYPE datetime FORMAT "%Y-%m-%d"
+}
+
+# Transformation Rules for Order Items
+TRANSFORM items_data FROM order_items_api {
+    FIELD order_id TYPE int
+    FIELD product_id TYPE int
+    FIELD quantity TYPE int
+}
+
+# Output Configuration: Complex nested JSON structure
+OUTPUT nested_output TYPE json {
+    PATH "/output/nested_orders.json"
+    NESTING {
+        FIELD order_id NESTED {
+            INCLUDE order_date
+            INCLUDE customer_id
+            INCLUDE items_data
+        }
+    }
+}

@@ -1,0 +1,26 @@
+VERSION 1.0
+
+# API Data Source with Retry Mechanism
+SOURCE external_api TYPE api {
+    ENDPOINT "https://api.example.com/data"
+    METHOD "GET"
+    HEADERS {
+        Authorization "Bearer YOUR_TOKEN"
+    }
+    RETRY {
+        MAX_RETRIES 3
+        RETRY_DELAY 5  # In seconds
+        ON_FAILURE LOG "API request failed, retrying..."
+    }
+}
+
+# Transformation Rules for API Data
+TRANSFORM api_data FROM external_api {
+    FIELD id TYPE int
+    FIELD data TYPE string
+}
+
+# Output Configuration: Save as JSON
+OUTPUT api_output TYPE json {
+    PATH "/output/api_data.json"
+}
