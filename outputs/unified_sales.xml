@@ -1,2 +1,33 @@
-<?xml version='1.0' encoding='utf-8'?>
-<data><item><id>1</id><sale_date>2024-01-01</sale_date><amount>100.50</amount></item><item><id>2</id><sale_date>2024-01-02</sale_date><amount>150.75</amount></item><item><id>3</id><sale_date>2024-01-01</sale_date><amount>100.50</amount></item><item><id>4</id><sale_date>2024-01-02</sale_date><amount>150.75</amount></item><item><id>5</id><sale_date>2024-01-01</sale_date><amount>100.50</amount></item><item><id>6</id><sale_date>2024-01-02</sale_date><amount>150.75</amount></item></data>
+<?xml version="1.0" ?>
+<data>
+    <item>
+        <id>1</id>
+        <sale_date>2024-01-01</sale_date>
+        <amount>100.50</amount>
+    </item>
+    <item>
+        <id>2</id>
+        <sale_date>2024-01-02</sale_date>
+        <amount>150.75</amount>
+    </item>
+    <item>
+        <id>3</id>
+        <sale_date>2024-01-01</sale_date>
+        <amount>100.50</amount>
+    </item>
+    <item>
+        <id>4</id>
+        <sale_date>2024-01-02</sale_date>
+        <amount>150.75</amount>
+    </item>
+    <item>
+        <id>5</id>
+        <sale_date>2024-01-01</sale_date>
+        <amount>100.50</amount>
+    </item>
+    <item>
+        <id>6</id>
+        <sale_date>2024-01-02</sale_date>
+        <amount>150.75</amount>
+    </item>
+</data>

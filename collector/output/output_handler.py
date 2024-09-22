@@ -1,4 +1,5 @@
 from decimal import Decimal
+from xml.dom import minidom
 import pandas as pd
 import json
 from datetime import date
@@ -51,7 +52,7 @@ class OutputHandler:
 
     def _write_xml(self, data):
         """
-        Outputs data to an XML file.
+        Outputs data to an XML file with pretty printing.
 
         :param data: The data to output.
         :type data: list of dict
@@ -65,9 +66,14 @@ class OutputHandler:
                 child = ET.SubElement(item, key)
                 child.text = str(value)  # Ensure everything is a string
 
-        # Write the XML tree to a file
-        tree = ET.ElementTree(root)
-        tree.write(self.output_path, encoding="utf-8", xml_declaration=True)
+        # Convert the ElementTree to a string and apply pretty printing
+        rough_string = ET.tostring(root, encoding="utf-8")
+        reparsed = minidom.parseString(rough_string)
+        pretty_xml = reparsed.toprettyxml(indent="    ")  # Add indentation of 4 spaces
+
+        # Write the pretty-printed XML to a file
+        with open(self.output_path, "w") as xml_file:
+            xml_file.write(pretty_xml)
 
     @staticmethod
     def _json_serial(obj):
