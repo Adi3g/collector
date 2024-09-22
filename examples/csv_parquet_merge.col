@@ -1,0 +1,33 @@
+VERSION 1.0
+
+# CSV Data Source (e.g., product catalog)
+SOURCE products_csv TYPE csv {
+    FILE_PATH "/data/products.csv"
+    DELIMITER ","
+}
+
+# Parquet Data Source (e.g., sales data)
+SOURCE sales_parquet TYPE parquet {
+    FILE_PATH "/data/sales.parquet"
+}
+
+# Transformation Rules for CSV Data
+TRANSFORM products_data FROM products_csv {
+    FIELD product_id TYPE int
+    FIELD name TYPE string
+    FIELD category TYPE string
+}
+
+# Transformation Rules for Parquet Data
+TRANSFORM sales_data FROM sales_parquet {
+    FIELD sale_id TYPE int
+    FIELD product_id TYPE int
+    FIELD quantity TYPE int
+    FIELD sale_date TYPE datetime FORMAT "%Y-%m-%d"
+}
+
+# Output Configuration: Save merged data as CSV
+OUTPUT merged_output TYPE csv {
+    PATH "/output/merged_sales.csv"
+    DELIMITER ","
+}
