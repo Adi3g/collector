@@ -1,4 +1,4 @@
-# Collector
+# The Collector
 
 Collector is a Python library designed to collect data from various sources such as databases, big data files, APIs, and more, and transform the data into a unified output structure. This flexible and extensible tool allows you to define data collection and transformation rules using a custom configuration file format (`.col`), making data integration tasks streamlined and maintainable.
 
