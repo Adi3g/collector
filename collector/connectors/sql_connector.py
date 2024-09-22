@@ -1,4 +1,6 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
+
+from collector.utils.logger import get_logger
 
 class SQLConnector:
     """
@@ -17,6 +19,7 @@ class SQLConnector:
         """
         self.config = config
         self.engine = None
+        self.logger = get_logger()
 
     def connect(self):
         """
@@ -27,7 +30,7 @@ class SQLConnector:
         db_type = self.config.get('db_type', 'postgresql')  # Default to PostgreSQL if not specified
         connection_string = self._generate_connection_string(db_type)
         self.engine = create_engine(connection_string)
-        print(f"Connected to SQL database: {self.config.get('database')}")
+        self.logger.info(f"Connected to SQL database: {self.config.get('database')}")
 
     def _generate_connection_string(self, db_type):
         """
@@ -63,7 +66,16 @@ class SQLConnector:
         """
         if not self.engine:
             self.connect()
-        with self.engine.connect() as connection:
-            result = connection.execute(query)
-            data = [dict(row) for row in result]
-        return data
+
+        try:
+            # Wrap the query in `text()` to ensure it's treated as an SQLAlchemy-compatible object
+            with self.engine.connect() as connection:
+                result = connection.execute(text(query))
+
+                # Use the `mappings()` method to convert rows to dictionaries
+                data = [dict(row) for row in result.mappings()]
+                self.logger.info(f"Fetched {len(data)} rows")
+            return data
+        except Exception as e:
+            self.logger.error(f"Query failed: {e}")
+            raise
