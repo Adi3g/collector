@@ -1,3 +1,4 @@
+from collector.connectors.csv_connector import CSVConnector
 from collector.core.config_parser import CollectorConfigParser
 from collector.connectors.sql_connector import SQLConnector
 from collector.core.transformer import DataTransformer
@@ -45,7 +46,12 @@ class Collector:
         for source in self.config['sources']:
             if source['type'] == 'sql':
                 connector = SQLConnector(source['details'])
-                self.sources.append(connector)
+            elif source['type'] == 'csv':
+                connector = CSVConnector(source['details'])
+            else:
+                raise ValueError(f"Unsupported source type: {source['type']}")
+
+            self.sources.append(connector)
         print(f"Initialized {len(self.sources)} connectors")
 
     def collect_data(self):
@@ -111,7 +117,6 @@ class Collector:
         """
         return self.transformer.transform(data)
 
-
     def initialize_output_handler(self):
         """
         Initializes the output handler with the output settings from the configuration.
@@ -136,4 +141,3 @@ class Collector:
         raw_data = self.collect_data()
         transformed_data = self.transform_data(raw_data)
         self.output_data(transformed_data)
-
