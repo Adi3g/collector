@@ -22,7 +22,7 @@ SOURCE weather_api TYPE api {
     QUERY_PARAMS {
         q "London"
         units "metric" 
-        appid "token"
+        appid "9ab8bcc29fde7239b71981b434137457"
     }
 }
 
@@ -39,9 +39,6 @@ TRANSFORM unified_weather FROM weather_api {
 }
 
 # Output Configuration
-OUTPUT combined_data TYPE parquet {
-    PATH "./outputs/combined_data.parquet"
-    OPTIONS {
-        COMPRESSION "gzip"
-    }
+OUTPUT combined_data TYPE json {
+    PATH "./outputs/combined_data.json"
 }

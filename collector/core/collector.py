@@ -1,4 +1,5 @@
 import datetime
+from collector.connectors.api_connector import APIConnector
 from collector.core.config_parser import CollectorConfigParser
 from collector.core.validator import ColValidator  # Import the validator
 from collector.connectors.sql_connector import SQLConnector
@@ -63,6 +64,12 @@ class Collector:
                 connector = SQLConnector(source['details'])
                 self.sources.append(connector)
                 self.logger.info(f"Initialized SQL connector for database: {source['details'].get('database')}")
+            elif source['type'] == 'api':
+                # Initialize the APIConnector with source details
+                connector = APIConnector(source['details'])
+                self.sources.append(connector)
+                self.logger.info(f"Initialized API connector for endpoint: {source['details'].get('endpoint')}")
+
             else:
                 self.logger.error(f"Unsupported source type: {source['type']}")
                 raise ValueError(f"Unsupported source type: {source['type']}")
@@ -73,23 +80,39 @@ class Collector:
 
     def collect_data(self):
         """
-        Collects data from all initialized connectors.
+        Collects data from all initialized connectors (SQL, API, etc.).
+        
         :return: A list containing the data collected from each source.
         :rtype: list
         """
         self.logger.info("Collecting data from sources")
         
         all_data = []
+
         for connector in self.sources:
-            data = connector.fetch_data(connector.config['query'])
-            all_data.extend(data)
-            self.logger.info(f"Collected {len(data)} rows from source")
+            if isinstance(connector, SQLConnector):
+                # SQL connectors fetch data using SQL queries
+                data = connector.fetch_data(connector.config['query'])
+                self.logger.info(f"Collected {len(data)} rows from SQL source: {connector.config.get('database')}")
+            elif isinstance(connector, APIConnector):
+                # API connectors fetch data without a query
+                data = connector.fetch_data()  # No query required for API
+                self.logger.info(f"Collected data from API source: {connector.config.get('endpoint')}")
+            else:
+                self.logger.error(f"Unsupported connector type: {type(connector).__name__}")
+                raise ValueError(f"Unsupported connector type: {type(connector).__name__}")
+            
+            if isinstance(data, list):
+                all_data.extend(data)
+            else:
+                all_data.append(data)
 
         if not all_data:
             self.logger.error("No data collected from any source.")
             raise ValueError("No data collected from any source.")
 
         return all_data
+
 
     def _apply_date_format(self, date_str, date_format):
         """
