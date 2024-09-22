@@ -10,5 +10,5 @@ def test_csv_connector(mock_open):
     connector = CSVConnector(config)
     data = connector.fetch_data()
 
-    # Assert the data read from the file
-    assert data == [{'id': '1', 'name': 'Test'}, {'id': '2', 'name': 'Example'}]
+    # Assert the data read from the file (with integers for 'id')
+    assert data == [{'id': 1, 'name': 'Test'}, {'id': 2, 'name': 'Example'}]
