@@ -92,7 +92,7 @@ class ColValidator:
             output = self.config['output']
             if 'type' not in output:
                 self.errors.append("Output must have a 'type' field.")
-            elif output['type'] not in ['csv', 'json', 'parquet']:
+            elif output['type'] not in ['csv', 'xml', 'json', 'parquet']:
                 self.errors.append(f"Invalid output type: {output['type']}. Must be one of ['csv', 'json', 'parquet'].")
             if 'details' not in output or 'path' not in output['details']:
                 self.errors.append("Output must have a 'path' in 'details'.")

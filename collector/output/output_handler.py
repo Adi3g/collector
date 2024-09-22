@@ -2,6 +2,7 @@ from decimal import Decimal
 import pandas as pd
 import json
 from datetime import date
+import xml.etree.ElementTree as ET
 
 class OutputHandler:
     """
@@ -31,6 +32,8 @@ class OutputHandler:
             self._write_csv(data)
         elif self.output_type == 'json':
             self._write_json(data)
+        elif self.output_type == 'xml':
+            self._write_xml(data)
         elif self.output_type == 'parquet':
             self._write_parquet(data)
         else:
@@ -46,6 +49,26 @@ class OutputHandler:
         df = pd.DataFrame(data)  # Convert data to DataFrame
         df.to_csv(self.output_path, index=False)
 
+    def _write_xml(self, data):
+        """
+        Outputs data to an XML file.
+
+        :param data: The data to output.
+        :type data: list of dict
+        """
+        root = ET.Element("data")
+
+        # Convert each dictionary entry into an XML element
+        for row in data:
+            item = ET.SubElement(root, "item")
+            for key, value in row.items():
+                child = ET.SubElement(item, key)
+                child.text = str(value)  # Ensure everything is a string
+
+        # Write the XML tree to a file
+        tree = ET.ElementTree(root)
+        tree.write(self.output_path, encoding="utf-8", xml_declaration=True)
+
     @staticmethod
     def _json_serial(obj):
         """
@@ -60,7 +83,6 @@ class OutputHandler:
         if isinstance(obj, date):
             return obj.isoformat()  # Convert date objects to ISO format (YYYY-MM-DD)
         raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
-
 
     def _write_json(self, data):
         """
