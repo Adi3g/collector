@@ -158,7 +158,65 @@ class CollectorConfigParser:
 
         return current_line_idx
 
+    def _parse_source(self, line):
+        """
+        Parses a SOURCE section line.
 
+        :param line: A line specifying a data source.
+        :type line: str
+        :return: A dictionary with source details.
+        :rtype: dict
+        """
+        parts = re.split(r'\s+', line)
+        source_type = parts[3]
+        if source_type == 'api':
+            return {
+                'name': parts[1],
+                'type': 'api',
+                'details': {
+                    'endpoint': None,
+                    'method': None,
+                    'headers': {},
+                    'query_params': {}
+                }
+            }
+        elif source_type == 'sql':
+            return {
+                'name': parts[1],
+                'type': 'sql',
+                'details': {}
+            }
+
+    def _parse_api_source(self, lines):
+        """
+        Processes an API source, including headers and query params.
+
+        :param lines: The lines of the configuration file.
+        :type lines: list
+        :return: Parsed API source configuration.
+        :rtype: dict
+        """
+        api_details = {
+            'endpoint': None,
+            'method': 'GET',  # Default to GET
+            'headers': {},
+            'query_params': {}
+        }
+
+        for line in lines:
+            line = line.strip()
+            if line.startswith("ENDPOINT"):
+                api_details['endpoint'] = line.split(" ", 1)[1].strip('"')
+            elif line.startswith("METHOD"):
+                api_details['method'] = line.split(" ", 1)[1].strip('"')
+            elif line.startswith("HEADERS"):
+                # Parse headers
+                api_details['headers'] = self._parse_block_details(lines)
+            elif line.startswith("QUERY_PARAMS"):
+                # Parse query parameters
+                api_details['query_params'] = self._parse_block_details(lines)
+
+        return api_details
 
     def _parse_nested(self, line, current_data, lines, current_line_idx):
         """
@@ -178,6 +236,23 @@ class CollectorConfigParser:
         if 'section' in current_data and current_data['section'] == 'output':
             # Delegate to the output-specific handler
             return self._parse_output_details(current_data, line, lines, current_line_idx)
+
+        # Handle HEADERS or QUERY_PARAMS as dictionaries
+        elif line.startswith('HEADERS') or line.startswith('QUERY_PARAMS'):
+            key = line.split()[0].lower()  # Either 'headers' or 'query_params'
+            current_data['details'][key] = {}  # Initialize the dictionary
+
+            current_line_idx += 1  # Move to the next line
+            while not lines[current_line_idx].strip().startswith('}'):  # Until the block ends
+                nested_line = lines[current_line_idx].strip()
+                match = re.match(r'(".*?"|\S+)\s+(".*?"|\S+)', nested_line)
+                if match:
+                    nested_key, nested_value = match.groups()
+                    nested_key = nested_key.strip('"')
+                    nested_value = nested_value.strip('"')
+                    current_data['details'][key][nested_key] = nested_value
+                current_line_idx += 1
+
         else:
             # General handling for nested lines in other sections
             match = re.match(r'(\w+)\s+("[^"]+"|\S+)', line)
@@ -189,4 +264,5 @@ class CollectorConfigParser:
                 if 'details' not in current_data:
                     current_data['details'] = {}
                 current_data['details'][key.lower()] = value
+
         return current_line_idx
