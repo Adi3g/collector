@@ -1,5 +1,7 @@
+from decimal import Decimal
 import pandas as pd
 import json
+from datetime import date
 
 class OutputHandler:
     """
@@ -44,6 +46,22 @@ class OutputHandler:
         df = pd.DataFrame(data)  # Convert data to DataFrame
         df.to_csv(self.output_path, index=False)
 
+    @staticmethod
+    def _json_serial(obj):
+        """
+        Custom serializer for objects not serializable by default.
+        
+        :param obj: The object to serialize.
+        :return: A serializable format (e.g., string) of the object.
+        :raises TypeError: If the object is not serializable.
+        """
+        if isinstance(obj, Decimal):
+            return float(obj)  # Convert Decimal objects to float
+        if isinstance(obj, date):
+            return obj.isoformat()  # Convert date objects to ISO format (YYYY-MM-DD)
+        raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
+
+
     def _write_json(self, data):
         """
         Outputs data to a JSON file.
@@ -52,7 +70,7 @@ class OutputHandler:
         :type data: list of dict
         """
         with open(self.output_path, 'w') as json_file:
-            json.dump(data, json_file, indent=4)
+            json.dump(data, json_file, indent=4, default=self._json_serial)  # Use custom serialization method
 
     def _write_parquet(self, data):
         """
