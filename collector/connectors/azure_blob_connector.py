@@ -1,5 +1,5 @@
 from azure.storage.blob import BlobServiceClient
-import logging
+from collector.utils.logger import get_logger
 
 class AzureBlobConnector:
     """
@@ -21,7 +21,7 @@ class AzureBlobConnector:
             account_url=f"https://{config['azure_storage_account']}.blob.core.windows.net",
             credential=config['azure_storage_key']
         )
-        self.logger = logging.getLogger("AzureBlobConnector")
+        self.logger = get_logger("AzureBlobConnector")
 
     def fetch_data(self):
         """

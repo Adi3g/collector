@@ -1,5 +1,5 @@
 import boto3
-import logging
+from collector.utils.logger import get_logger
 
 class S3Connector:
     """
@@ -22,7 +22,7 @@ class S3Connector:
             aws_access_key_id=config['aws_access_key'],
             aws_secret_access_key=config['aws_secret_key']
         )
-        self.logger = logging.getLogger("S3Connector")
+        self.logger = get_logger("S3Connector")
 
     def fetch_data(self):
         """
