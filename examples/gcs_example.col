@@ -1,0 +1,13 @@
+VERSION 1.0
+
+# GCS Data Source
+SOURCE analytics_data TYPE gcs {
+    BUCKET "analytics-bucket"
+    OBJECT "2023/05/analytics_data.json"
+    GOOGLE_CLOUD_KEY_FILE "/path/to/keyfile.json"
+}
+
+# Output Configuration
+OUTPUT analytics_output TYPE csv {
+    PATH "./output/analytics_data.csv"
+}
