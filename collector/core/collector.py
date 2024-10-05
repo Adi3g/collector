@@ -1,5 +1,6 @@
 import datetime
 from collector.connectors.api_connector import APIConnector
+from collector.connectors.mongodb_connector import MongoDBConnector
 from collector.core.config_parser import CollectorConfigParser
 from collector.core.validator import ColValidator  # Import the validator
 from collector.connectors.sql_connector import SQLConnector
@@ -69,7 +70,11 @@ class Collector:
                 connector = APIConnector(source['details'])
                 self.sources.append(connector)
                 self.logger.info(f"Initialized API connector for endpoint: {source['details'].get('endpoint')}")
-
+            elif source['type'] == 'mongodb':
+                # MongoDBConnector initialization
+                connector = MongoDBConnector(source['details'])
+                self.sources.append(connector)
+                self.logger.info(f"Initialized MongoDB connector for collection: {source['details'].get('collection')}")
             else:
                 self.logger.error(f"Unsupported source type: {source['type']}")
                 raise ValueError(f"Unsupported source type: {source['type']}")
