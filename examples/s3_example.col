@@ -1,0 +1,14 @@
+VERSION 1.0
+
+# AWS S3 Data Source
+SOURCE sales_data TYPE s3 {
+    BUCKET "sales-bucket"
+    KEY "2023/05/sales_data.csv"
+    AWS_ACCESS_KEY "your_access_key"
+    AWS_SECRET_KEY "your_secret_key"
+}
+
+# Output Configuration
+OUTPUT sales_output TYPE json {
+    PATH "./output/sales_data.json"
+}
