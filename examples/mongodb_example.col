@@ -1,0 +1,15 @@
+VERSION 1.0
+
+# MongoDB Data Source
+SOURCE users_db TYPE mongodb {
+    HOST "localhost"
+    PORT 27017
+    DATABASE "users"
+    COLLECTION "profiles"
+    QUERY "{'age': {'$gt': 25}}"
+}
+
+# Output Configuration
+OUTPUT user_data TYPE json {
+    PATH "./output/user_data.json"
+}
