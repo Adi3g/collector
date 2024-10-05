@@ -1,6 +1,9 @@
 import datetime
 from collector.connectors.api_connector import APIConnector
+from collector.connectors.azure_blob_connector import AzureBlobConnector
+from collector.connectors.gcs_connector import GCSConnector
 from collector.connectors.mongodb_connector import MongoDBConnector
+from collector.connectors.s3_connector import S3Connector
 from collector.core.config_parser import CollectorConfigParser
 from collector.core.validator import ColValidator  # Import the validator
 from collector.connectors.sql_connector import SQLConnector
@@ -75,6 +78,22 @@ class Collector:
                 connector = MongoDBConnector(source['details'])
                 self.sources.append(connector)
                 self.logger.info(f"Initialized MongoDB connector for collection: {source['details'].get('collection')}")
+            elif source['type'] == 's3':
+                # S3Connector initialization
+                connector = S3Connector(source['details'])
+                self.sources.append(connector)
+                self.logger.info(f"Initialized S3 connector for bucket: {source['details'].get('bucket')}")
+            elif source['type'] == 'gcs':
+                # GCSConnector initialization
+                connector = GCSConnector(source['details'])
+                self.sources.append(connector)
+                self.logger.info(f"Initialized GCS connector for bucket: {source['details'].get('bucket')}")
+            elif source['type'] == 'azure_blob':
+                # AzureBlobConnector initialization
+                connector = AzureBlobConnector(source['details'])
+                self.sources.append(connector)
+                self.logger.info(f"Initialized Azure Blob connector for container: {source['details'].get('container')}")
+
             else:
                 self.logger.error(f"Unsupported source type: {source['type']}")
                 raise ValueError(f"Unsupported source type: {source['type']}")
