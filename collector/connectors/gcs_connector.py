@@ -1,5 +1,5 @@
 from google.cloud import storage
-import logging
+from collector.utils.logger import get_logger
 
 class GCSConnector:
     """
@@ -19,7 +19,7 @@ class GCSConnector:
         self.config = config
         self.client = storage.Client.from_service_account_json(config['google_cloud_key_file'])
         self.bucket = self.client.bucket(config['bucket'])
-        self.logger = logging.getLogger("GCSConnector")
+        self.logger = get_logger("GCSConnector")
 
     def fetch_data(self):
         """

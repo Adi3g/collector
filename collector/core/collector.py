@@ -1,3 +1,4 @@
+import concurrent.futures
 import datetime
 from collector.connectors.api_connector import APIConnector
 from collector.connectors.azure_blob_connector import AzureBlobConnector
@@ -5,7 +6,7 @@ from collector.connectors.gcs_connector import GCSConnector
 from collector.connectors.mongodb_connector import MongoDBConnector
 from collector.connectors.s3_connector import S3Connector
 from collector.core.config_parser import CollectorConfigParser
-from collector.core.validator import ColValidator  # Import the validator
+from collector.core.validator import ColValidator
 from collector.connectors.sql_connector import SQLConnector
 from collector.output.output_handler import OutputHandler
 from collector.utils.logger import get_logger
@@ -102,41 +103,50 @@ class Collector:
             self.logger.error("No valid data sources found.")
             raise ValueError("No valid data sources found.")
 
-    def collect_data(self):
+    def fetch_data_from_source(self, connector):
         """
-        Collects data from all initialized connectors (SQL, API, etc.).
-        
+        Fetch data from a single connector.
+        """
+        try:
+            self.logger.info(f"Fetching data from {type(connector).__name__}")
+            if isinstance(connector, SQLConnector):
+                data = connector.fetch_data(connector.config['query'])
+            elif isinstance(connector, APIConnector):
+                data = connector.fetch_data()  # No query needed for API
+            else:
+                data = connector.fetch_data()
+            self.logger.info(f"Collected data from {type(connector).__name__}")
+            return data
+        except Exception as e:
+            self.logger.error(f"Error fetching data from {type(connector).__name__}: {e}")
+            return []
+
+    def collect_data_parallel(self):
+        """
+        Collects data from all initialized connectors in parallel using threads.
         :return: A list containing the data collected from each source.
         :rtype: list
         """
-        self.logger.info("Collecting data from sources")
-        
-        all_data = []
+        self.logger.info("Collecting data from sources in parallel")
 
-        for connector in self.sources:
-            if isinstance(connector, SQLConnector):
-                # SQL connectors fetch data using SQL queries
-                data = connector.fetch_data(connector.config['query'])
-                self.logger.info(f"Collected {len(data)} rows from SQL source: {connector.config.get('database')}")
-            elif isinstance(connector, APIConnector):
-                # API connectors fetch data without a query
-                data = connector.fetch_data()  # No query required for API
-                self.logger.info(f"Collected data from API source: {connector.config.get('endpoint')}")
-            else:
-                self.logger.error(f"Unsupported connector type: {type(connector).__name__}")
-                raise ValueError(f"Unsupported connector type: {type(connector).__name__}")
-            
-            if isinstance(data, list):
-                all_data.extend(data)
-            else:
-                all_data.append(data)
+        all_data = []
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future_to_connector = {executor.submit(self.fetch_data_from_source, connector): connector for connector in self.sources}
+
+            for future in concurrent.futures.as_completed(future_to_connector):
+                connector = future_to_connector[future]
+                try:
+                    data = future.result()
+                    all_data.extend(data)
+                    self.logger.info(f"Collected {len(data)} rows from {type(connector).__name__}")
+                except Exception as exc:
+                    self.logger.error(f"Error collecting data from {type(connector).__name__}: {exc}")
 
         if not all_data:
             self.logger.error("No data collected from any source.")
             raise ValueError("No data collected from any source.")
 
         return all_data
-
 
     def _apply_date_format(self, date_str, date_format):
         """
@@ -166,22 +176,17 @@ class Collector:
             transformed_row = row.copy()
             
             for transform in self.config['transformations']:
-                # Get the source field that needs to be transformed
                 source_field = transform['source']
                 target_field = transform['target']
                 rules = transform['rules']
                 
-                # Apply transformation rules to the row
                 if source_field in transformed_row:
                     for rule in rules:
                         if rule['type'] == 'date':
-                            # Convert to a date format if the type is specified as date
                             transformed_row[target_field] = self._apply_date_format(transformed_row[source_field], rule['format'])
                         elif rule['type'] == 'float':
-                            # Convert the value to a float
                             transformed_row[target_field] = float(transformed_row[source_field])
                         elif 'default' in rule:
-                            # Apply default value if specified
                             transformed_row[target_field] = transformed_row.get(source_field, rule['default'])
             
             transformed_data.append(transformed_row)
@@ -197,15 +202,14 @@ class Collector:
         :type transformed_data: list of dict
         """
         output_config = self.config['output']
-        output_handler = OutputHandler(output_config)  # Initialize OutputHandler with the configuration
+        output_handler = OutputHandler(output_config)
         try:
             self.logger.info(f"Outputting data using OutputHandler as {output_config['type']}")
-            output_handler.write_output(transformed_data)  # Delegate output to OutputHandler
+            output_handler.write_output(transformed_data)
             self.logger.info(f"Data successfully written to {output_config['details']['path']}")
         except Exception as e:
             self.logger.error(f"Failed to output data: {e}")
             raise
-
 
     def run(self):
         """
@@ -218,7 +222,7 @@ class Collector:
         self.validate_config()
 
         self.initialize_connectors()
-        raw_data = self.collect_data()
+        raw_data = self.collect_data_parallel()
         transformed_data = self.transform_data(raw_data)
         self.output_data(transformed_data)
         self.logger.info("Collector run complete")
